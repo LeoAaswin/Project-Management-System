@@ -30,10 +30,11 @@ import { Command, CommandEmpty, CommandGroup, CommandItem } from "@/components/u
 import { X, User, ChevronsUpDown, Plus, Trash2 } from "lucide-react";
 import { SubtaskDetailsDialog } from "./subtask-details-dialog";
 
-interface CreateTaskDialogProps {
+interface EditTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTaskCreated: () => void;
+  onTaskUpdated: () => void;
+  data: any;
   workspaceId: string;
 }
 
@@ -43,6 +44,7 @@ interface User {
 }
 
 interface Subtask {
+  id?: number;
   title: string;
   description?: string;
   priority?: string;
@@ -51,12 +53,13 @@ interface Subtask {
   assigneeId?: number;
 }
 
-export function CreateTaskDialog({
+export function EditTaskDialog({
   open,
   onOpenChange,
-  onTaskCreated,
+  onTaskUpdated,
+  data,
   workspaceId,
-}: CreateTaskDialogProps) {
+}: EditTaskDialogProps) {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -71,6 +74,18 @@ export function CreateTaskDialog({
   const { toast } = useToast();
 
   useEffect(() => {
+    if (data) {
+      setTitle(data.title || "");
+      setDescription(data.description || "");
+      setPriority(data.priority?.toString() || "1");
+      setProgress(data.progress || "To Do");
+      setDueDate(data.due_date ? data.due_date.split('T')[0] : "");
+      setAssignedUsers(data.assignees || []);
+      setSubtasks(data.subtasks || []);
+    }
+  }, [data]);
+
+  useEffect(() => {
     if (open) {
       fetchUsers();
     }
@@ -79,24 +94,22 @@ export function CreateTaskDialog({
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Authentication token not found");
-      }
-  
+      if (!token) throw new Error("Authentication token not found");
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to fetch users");
       }
-  
-      const data: User[] = await res.json();
-      setUsers(data);
+
+      const userData: User[] = await res.json();
+      setUsers(userData);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -126,14 +139,16 @@ export function CreateTaskDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!data) return;
+
     setLoading(true);
 
     try {
       const token = localStorage.getItem("token");
-      
-      // Create Task
-      const taskRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`, {
-        method: "POST",
+      if (!token) throw new Error("Authentication token not found");
+
+      const taskRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${data.id}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -151,36 +166,48 @@ export function CreateTaskDialog({
 
       if (!taskRes.ok) {
         const errorData = await taskRes.json();
-        throw new Error(errorData.error || "Failed to create task");
+        throw new Error(errorData.error || "Failed to update task");
       }
 
-      const taskData = await taskRes.json();
-
-      // Create Subtasks
       await Promise.all(
         subtasks.map((subtask) =>
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/subtasks`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              ...subtask,
-              TaskId: taskData.id,
-            }),
-          })
+          subtask.id
+            ? fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/subtasks/${subtask.id}`, {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  title: subtask.title,
+                  description: subtask.description,
+                  priority: subtask.priority ? parseInt(subtask.priority) : undefined,
+                  progress: subtask.progress,
+                  due_date: subtask.dueDate,
+                  assignee: subtask.assigneeId,
+                }),
+              })
+            : fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/subtasks`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  ...subtask,
+                  TaskId: data.id,
+                }),
+              })
         )
       );
 
       toast({
         title: "Success",
-        description: "Task and subtasks created successfully",
+        description: "Task and subtasks updated successfully",
       });
 
-      onTaskCreated();
+      onTaskUpdated();
       onOpenChange(false);
-      resetForm();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -192,32 +219,60 @@ export function CreateTaskDialog({
     }
   };
 
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setPriority("1");
-    setProgress("To Do");
-    setDueDate("");
-    setAssignedUsers([]);
-    setSubtasks([]);
-  };
+  const handleDeleteTask = async () => {
+    if (!data?.id) return;
+    
+    setLoading(true);
+    
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token not found");
 
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${data.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to delete task");
+      }
+
+      toast({
+        title: "Success",
+        description: "Task deleted successfully",
+      });
+      
+      onTaskUpdated();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
-  const isFormValid = title && dueDate && subtasks.every(st => st.title);
+  const isFormValid = title && dueDate && subtasks.every((st) => st.title);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -413,12 +468,12 @@ export function CreateTaskDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={ handleDeleteTask }
             >
-              Cancel
+             {loading ? "Deleting..." : "Delete"}
             </Button>
             <Button type="submit" disabled={loading || !isFormValid}>
-              {loading ? "Creating..." : "Create Task"}
+              {loading ? "Updating..." : "Update Task"}
             </Button>
           </DialogFooter>
         </form>

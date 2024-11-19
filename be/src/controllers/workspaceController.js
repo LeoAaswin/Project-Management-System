@@ -1,4 +1,4 @@
-const { Workspace, Task, Document, User } = require('../models');
+const { Workspace, Task, Document, User, Subtask } = require('../models');
 
 const create = async (req, res) => {
   try {
@@ -30,7 +30,12 @@ const getById = async (req, res) => {
         {
           model: Task,
           include: [
-            { model: User, as: 'assignees' }
+            { model: User, as: 'assignees' },
+            { model: Subtask,
+              include: [
+                { model: User, as: 'assignees' }
+              ]
+             }
           ],
         },
         { model: Document,
