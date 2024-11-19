@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { KanbanIcon, Plus, PlusIcon } from "lucide-react";
 import {
@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/tooltip";
 import { CreateTaskDialog } from "@/components/dashboard/create-task-dialog";
 import { CreateDocumentDialog } from "@/components/dashboard/create-document-dialog";
-import { set } from "date-fns";
+import { EditTaskDialog } from "@/components/dashboard/edit-task-dialog";
+import { EditDocumentDialog } from "@/components/dashboard/edit-document-dialog";
 
 interface Task {
   id: number;
@@ -39,14 +40,19 @@ interface User {
 }
 
 export default function WorkspacePage() {
+  const router = useRouter();
   const { workspaceId } = useParams();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [workspaceName, setWorkspaceName] = useState<string>("");
   const [workspaceDescription, setWorkspaceDescription] = useState<string>("");
   const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
+  const [isEditTaskDialogOpen, setIsEditTaskDialogOpen] = useState(false);
   const [isCreateDocumentDialogOpen, setIsCreateDocumentDialogOpen] = useState(false);
+  const [isEditDocumentDialogOpen, setIsEditDocumentDialogOpen] = useState(false);
 
   useEffect(() => {
     if (workspaceId) {
@@ -160,7 +166,7 @@ export default function WorkspacePage() {
         <section>
           <div className="flex gap-4 items-center mb-3">
             <h2 className="text-xl font-semibold">Tasks</h2>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => router.push("/dashboard/kanban/") }>
               <KanbanIcon className="mr-2 h-4 w-4" />Kanban Board
             </Button>
           </div>
@@ -168,6 +174,7 @@ export default function WorkspacePage() {
             {tasks.map((task) => (
               <li
                 key={task.id}
+                onClick={() => { setSelectedTask(task);setIsEditTaskDialogOpen(true); }}
                 className="flex justify-between items-center p-4 border border-gray-200 rounded-md shadow-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <div className="flex-1">
@@ -242,6 +249,7 @@ export default function WorkspacePage() {
           <ul className="space-y-4">
             {documents.map((document) => (
               <li
+              onClick={() => { setSelectedDocument(document);setIsEditDocumentDialogOpen(true); }}
                 key={document.id}
                 className="flex justify-between items-center p-4 border border-gray-200 rounded-md shadow-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
@@ -294,6 +302,22 @@ export default function WorkspacePage() {
         open={isCreateDocumentDialogOpen}
         onOpenChange={setIsCreateDocumentDialogOpen}
         onDocumentCreated={fetchWorkspaceDetails}
+        workspaceId={workspaceId as string}
+      />
+
+      <EditTaskDialog
+        open={isEditTaskDialogOpen}
+        onOpenChange={setIsEditTaskDialogOpen}
+        onTaskUpdated={fetchWorkspaceDetails}
+        data={selectedTask}
+        workspaceId={workspaceId as string}
+      />
+
+      <EditDocumentDialog
+        open={isEditDocumentDialogOpen}
+        onOpenChange={setIsEditDocumentDialogOpen}
+        onDocumentUpdated={fetchWorkspaceDetails}
+        data={selectedDocument}
         workspaceId={workspaceId as string}
       />
     </div>
