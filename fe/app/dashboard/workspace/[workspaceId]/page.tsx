@@ -166,7 +166,7 @@ export default function WorkspacePage() {
         <section>
           <div className="flex gap-4 items-center mb-3">
             <h2 className="text-xl font-semibold">Tasks</h2>
-            <Button variant="outline" onClick={() => router.push("/dashboard/kanban/") }>
+            <Button variant="outline" onClick={() => router.push(`/dashboard/kanban/${workspaceId}`) }>
               <KanbanIcon className="mr-2 h-4 w-4" />Kanban Board
             </Button>
           </div>
