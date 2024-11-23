@@ -10,6 +10,7 @@ const taskRoutes = require('./routes/taskRoutes');
 const subtaskRoutes = require('./routes/subtaskRoutes');
 const documentRoutes = require('./routes/documentRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/subtasks', subtaskRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Database sync and server start
 const PORT = process.env.PORT || 3000;
