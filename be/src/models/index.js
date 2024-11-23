@@ -3,6 +3,7 @@ const Workspace = require('./workspace');
 const Task = require('./task');
 const Subtask = require('./subtask');
 const Document = require('./document');
+const Comment = require('./comment');
 
 // Workspace associations
 Workspace.hasMany(Task);
@@ -27,10 +28,18 @@ Document.belongsTo(User, { as: 'author' });
 Document.belongsToMany(User, { through: 'DocumentContributors', as: 'contributors' });
 User.belongsToMany(Document, { through: 'DocumentContributors', as: 'contributedDocuments' });
 
+// Comment associations
+Task.hasMany(Comment, { foreignKey: 'taskId', onDelete: 'CASCADE' });
+Comment.belongsTo(Task, { foreignKey: 'taskId' });
+
+User.hasMany(Comment, { foreignKey: 'userId' });
+Comment.belongsTo(User, { foreignKey: 'userId' });
+
 module.exports = {
   User,
   Workspace,
   Task,
   Subtask,
-  Document
+  Document,
+  Comment
 };
