@@ -177,10 +177,10 @@ export default function WorkspacePage() {
                 onClick={() => { setSelectedTask(task);setIsEditTaskDialogOpen(true); }}
                 className="flex justify-between items-center p-4 border border-gray-200 rounded-md shadow-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">{task.title}</h3>
+                <div className="flex-1  flex ">
+                  <h3 className="text-lg font-semibold w-[33%]">{task.title}</h3>
                   {task.assignees && task.assignees.length > 0 && (
-                    <div className="flex -space-x-2 mt-2">
+                    <div className="flex -space-x-2 ml-[50%] cursor-pointer">
                       <TooltipProvider>
                         {task.assignees.slice(0, 4).map((assignee, index) => (
                           <Tooltip key={assignee.id}>
@@ -213,7 +213,7 @@ export default function WorkspacePage() {
                   )}
                 </div>
 
-                <p className="text-sm text-gray-500 dark:text-gray-400 ml-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Due: {formatDate(task.due_date)}
                 </p>
 
@@ -255,7 +255,7 @@ export default function WorkspacePage() {
               >
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold">{document.title}</h3>
-                  <div className="flex items-center mt-2">
+                  <div className="flex items-center mt-2 cursor-pointer">
                     {document.author ? (
                       <TooltipProvider>
                         <Tooltip>
@@ -276,8 +276,8 @@ export default function WorkspacePage() {
                         ?
                       </div>
                     )}
-                    <span className="ml-2 text-sm text-gray-500">
-                      {document.author ? 'Author' : 'No author'}
+                    <span className="ml-2 text-sm text-gray-500 cursor-pointer">
+                      {document.author.name}
                     </span>
                   </div>
                 </div>
