@@ -23,6 +23,9 @@ interface EditDocumentDialogProps {
     id: number;
     title: string;
     description: string;
+    author: [];
+    createdAt: string;
+    updatedAt: string;
   };
   workspaceId: string;
 }
@@ -136,6 +139,7 @@ export function EditDocumentDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Document</DialogTitle>
+          <h2 className="text-sm text-muted-foreground">Created by: {data?.author.name}</h2>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
