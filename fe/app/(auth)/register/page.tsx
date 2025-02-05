@@ -79,7 +79,7 @@ export default function RegisterPage() {
         <CardHeader>
           <CardTitle>Create an account</CardTitle>
           <CardDescription>
-            Sign up to get started with ClickUp Clone
+            Sign up to get started with Taskflow
           </CardDescription>
         </CardHeader>
         <CardContent>

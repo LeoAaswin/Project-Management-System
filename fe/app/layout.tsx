@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ClickUp Clone',
+  title: 'Taskify',
   description: 'A modern task management platform',
 };
 
